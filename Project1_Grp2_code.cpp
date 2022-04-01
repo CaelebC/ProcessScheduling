@@ -27,74 +27,50 @@
 #include <cstdio>
 #include <fstream>
 #include <string>
+#include <list>
 using namespace std;
 
-struct FCFS {
+
+struct Process{
     int arrivalTime;
     int burstTime;
     int priorityNum;
 
-    FCFS(int arrival, int burst, int priority){
+    Process(int arrival, int burst, int priority){
         this-> arrivalTime = arrival;
         this-> burstTime = burst;
         this-> priorityNum = priority;
     }
+
+    ~Process(){}
+};
+
+struct FCFS {
+    
 
     ~FCFS(){}
 };
 
 struct SJF {
-    int arrivalTime;
-    int burstTime;
-    int priorityNum;
-    
-    SJF(int arrival, int burst, int priority){
-        this-> arrivalTime = arrival;
-        this-> burstTime = burst;
-        this-> priorityNum = priority;
-    }
+
 
     ~SJF(){}
 };
 
 struct SRTF {
-    int arrivalTime;
-    int burstTime;
-    int priorityNum;
     
-    SRTF(int arrival, int burst, int priority){
-        this-> arrivalTime = arrival;
-        this-> burstTime = burst;
-        this-> priorityNum = priority;
-    }
 
     ~SRTF(){}
 };
 
 struct Prio {
-    int arrivalTime;
-    int burstTime;
-    int priorityNum;
     
-    Prio(int arrival, int burst, int priority){
-        this-> arrivalTime = arrival;
-        this-> burstTime = burst;
-        this-> priorityNum = priority;
-    }
 
     ~Prio(){}
 };
 
 struct RR {
-    int arrivalTime;
-    int burstTime;
-    int priorityNum;
     
-    RR(int arrival, int burst, int priority){
-        this-> arrivalTime = arrival;
-        this-> burstTime = burst;
-        this-> priorityNum = priority;
-    }
 
     ~RR(){}
 };
@@ -117,24 +93,33 @@ int main(){
     int priority;
 
 
+
+
     // This gets the 1st line and only the 1st line of the input & stores in the variable
     cin >> testCases; 
-    while(cin) {
-        cin >> numProcesses >> processName >> quantum;
+    while(testCases) {
+        cin >> numProcesses >> processName;
+        
+        // This is to catch the quantum of the RR if ever there is one.
+        if (processName == "RR"){
+            cin >> quantum;
+        }
+
+        // Information on lists found on https://www.guru99.com/cpp-list.html
+        list<Process> my_list = {};
 
         for(int n = numProcesses; n > 0; n--){
             cin >> arrival >> burst >> priority;
+            Process p(arrival, burst, priority);
+            my_list.push_back(p);
+                    }
 
+        for (Process x: my_list){
+            cout << x.arrivalTime << " " << x.burstTime << " " << x.priorityNum << " " << endl;
         }
 
-        
-        cout << "number Processes: " << numProcesses << " ";
-        cout << "name Process: " << processName << " ";
-        cout << "Quantum number: " << quantum << " ";
-        cout << "" << endl;
-
-        
-
+        // This is to ensure that the 
+        testCases--;
     }
     
     
