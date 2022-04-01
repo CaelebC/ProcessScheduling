@@ -46,7 +46,23 @@ struct Process{
 };
 
 struct FCFS {
+    list<Process> processesInAlgorithm;
+    int elapsedTime;
+    int processIndex;
+
+    int cpuUtilization;
+    int throughput;
+    int waitingTime;
+    int turnaroundTime;
+    int responseTime;
     
+    void run(){
+
+    }
+
+    FCFS(list<Process> processesInAlgorithm){
+        this-> processesInAlgorithm = processesInAlgorithm;
+    }
 
     ~FCFS(){}
 };
@@ -92,36 +108,42 @@ int main(){
     int burst; 
     int priority;
 
-
-
-
     // This gets the 1st line and only the 1st line of the input & stores in the variable
-    cin >> testCases; 
-    while(testCases) {
+    cin >> testCases;
+
+    for(int n = 1; n <= testCases; n++) {
+        // Information on lists found on https://www.guru99.com/cpp-list.html
+        list<Process> processList = {};
+
         cin >> numProcesses >> processName;
-        
+        // cout << testCases << " " << processName << " " << numProcesses << endl;
+
         // This is to catch the quantum of the RR if ever there is one.
         if (processName == "RR"){
             cin >> quantum;
         }
 
-        // Information on lists found on https://www.guru99.com/cpp-list.html
-        list<Process> my_list = {};
-
+        // Puts process details in a Process object.
         for(int n = numProcesses; n > 0; n--){
             cin >> arrival >> burst >> priority;
             Process p(arrival, burst, priority);
-            my_list.push_back(p);
-                    }
-
-        for (Process x: my_list){
-            cout << x.arrivalTime << " " << x.burstTime << " " << x.priorityNum << " " << endl;
+            processList.push_back(p);
         }
 
-        // This is to ensure that the 
-        testCases--;
+        // Determines which algorithm to use for scheduling.
+        if (processName == "FCFS"){
+            cout << n << endl;
+            FCFS sched(processList);
+            sched.run();
+        } 
+        else {
+            cout << "not implemented yet sorry lods" << endl;
+        }
+
+        // for (Process x: processList){
+        //     cout << x.arrivalTime << " " << x.burstTime << " " << x.priorityNum << " " << endl;
+        // }
     }
-    
     
     return 0;
 }
