@@ -83,9 +83,9 @@ void computation(double totalBurstTime, double totalTimeElapsed, double totalNum
 {
     double cpuUtilization = (totalBurstTime / totalTimeElapsed) * 100;
     double throughput = totalNumProcesses / totalTimeElapsed;
-    double waitingTime = totalWaitingTime;
-    double turnaroundTime = totalTurnaroundTime;
-    double responseTime = totalResponseTime;
+    double waitingTime = totalWaitingTime / totalNumProcesses;
+    double turnaroundTime = totalTurnaroundTime / totalNumProcesses;
+    double responseTime = totalResponseTime / totalNumProcesses;
 
     cout << "burst time: " << totalBurstTime << " time elapsed: " << totalTimeElapsed << endl;
     cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
@@ -113,17 +113,27 @@ struct FCFS
         for (int n = 0; n < processesInAlgorithm.size(); n++)
         {
             Process p = processesInAlgorithm[n];
-            totalBurstTime += p.burstTime;
-            totalTimeElapsed += p.burstTime;
-            if (n == 0)
+            
+            if (p.arrivalTime >= totalTimeElapsed)
             {
-                cout << "if statement accessed" << endl;
-                totalTimeElapsed += p.arrivalTime;
+                double timeDelay = (p.arrivalTime - totalTimeElapsed);
+                totalTimeElapsed += timeDelay;
+                totalWaitingTime += timeDelay;
             }
+            
+            totalBurstTime += p.burstTime;
+            cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << "X" << endl;
+            totalTimeElapsed += p.burstTime;
 
-            cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
+
+            cout << "totalwaitingtime: " << totalWaitingTime << endl;
+            cout << "totalturnaroundtime: " << totalTurnaroundTime << endl;
+            cout << "totalresponsetime: " << totalResponseTime << endl;
+            cout << "-----" << endl;
+
         }
         
+        totalTurnaroundTime = totalBurstTime;
         computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
     }
 
