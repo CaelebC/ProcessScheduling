@@ -15,7 +15,7 @@
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 ////////////
-// cite your sources here, if any
+// Information on vectors found on https://www.cplusplus.com/reference/vector/vector/
 // 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -30,17 +30,19 @@
 #include <vector>
 #include <algorithm>
 #include <bits/stdc++.h>
+#include <tuple>
 using namespace std;
 
 
 // This struct is to create Process objects with the arrival, burst, and priority
 struct Process
 {
-    int arrivalTime;
-    int burstTime;
-    int priorityNum;
+    double arrivalTime;
+    double burstTime;
+    double priorityNum;
+    int processIndex;
 
-    Process(int arrival, int burst, int priority)
+    Process(double arrival, double burst, double priority)
     {
         this-> arrivalTime = arrival;
         this-> burstTime = burst;
@@ -51,7 +53,7 @@ struct Process
 };
 
 
-// These structs are for using the sort algorithm 
+// These structs are to be used by the std::sort 
 struct OrderingByArrival
 {
     inline bool operator() (const Process& struct1, const Process& struct2)
@@ -76,19 +78,33 @@ struct OrderingByPriority
     }
 };
 
+// This function is to compute and print the Scheduling Criteria
+void computation(double totalBurstTime, double totalTimeElapsed, double totalNumProcesses, double totalWaitingTime, double totalTurnaroundTime, double totalResponseTime)
+{
+    double cpuUtilization = (totalBurstTime / totalTimeElapsed) * 100;
+    double throughput = totalNumProcesses / totalTimeElapsed;
+    double waitingTime = totalWaitingTime;
+    double turnaroundTime = totalTurnaroundTime;
+    double responseTime = totalResponseTime;
 
-// These structs are for the schedulings
+    cout << "burst time: " << totalBurstTime << " time elapsed: " << totalTimeElapsed << endl;
+    cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
+    cout << "Throughput: " << throughput << endl;
+    cout << "Waiting time: " << waitingTime << endl;
+    cout << "Turnaround time: " << turnaroundTime << endl;
+    cout << "Response time: " << responseTime << endl;
+}
+
+// These structs are to schedule the processes
 struct FCFS 
 {
     vector<Process> processesInAlgorithm;
-    int elapsedTime;
-    int processIndex;
-
-    int cpuUtilization;
-    int throughput;
-    int waitingTime;
-    int turnaroundTime;
-    int responseTime;
+    double totalBurstTime = 0;
+    double totalTimeElapsed = 0;
+    double totalNumProcesses = processesInAlgorithm.size();
+    double totalWaitingTime; 
+    double totalTurnaroundTime; 
+    double totalResponseTime;
     
     void run()
     {
@@ -97,13 +113,18 @@ struct FCFS
         for (int n = 0; n < processesInAlgorithm.size(); n++)
         {
             Process p = processesInAlgorithm[n];
-            cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << endl;
+            totalBurstTime += p.burstTime;
+            totalTimeElapsed += p.burstTime;
+            if (n == 0)
+            {
+                cout << "if statement accessed" << endl;
+                totalTimeElapsed += p.arrivalTime;
+            }
+
+            cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
         }
-
-
-        //  Process p = processesInAlgorithm[n];
-        //  cout << p.arrivalTime << p.burstTime << p.priorityNum << endl;
-
+        
+        computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
     }
 
     FCFS(vector<Process> processesInAlgorithm)
@@ -153,55 +174,69 @@ int main()
     // Quantum is only really used for RR algo
     int numProcesses;
     string processName;
-    int quantum;
+    double quantum;
 
     // Variables which make up the details of each process
-    int arrival; 
-    int burst; 
-    int priority;
+    double arrival; 
+    double burst; 
+    double priority;
+    
+    cin >> testCases; // This gets the 1st line and only the 1st line of the input & stores in the variable
 
-    // This gets the 1st line and only the 1st line of the input & stores in the variable
-    cin >> testCases;
-
-    for(int n = 1; n <= testCases; n++)
+    for(int currentTestCaseNum = 1; currentTestCaseNum <= testCases; currentTestCaseNum++)
     {
-        // Information on lists found on https://www.guru99.com/cpp-list.html
         vector<Process> processArray = {};
 
+        cout << "------SEPARATOR REMOVE BEFORE PASSING THIS PROJECT------" << endl;
+        cout << currentTestCaseNum << endl;
         cin >> numProcesses >> processName;
-        // cout << testCases << " " << processName << " " << numProcesses << endl;
 
-        // This is to catch the quantum of the RR if ever there is one.
-        if (processName == "RR")
+        if (processName == "RR")  // This is to catch the quantum of the RR if ever there is one.
         {
             cin >> quantum;
         }
-
-        // Puts process details in a Process object.
-        for(int n = numProcesses; n > 0; n--)
+        
+        for(int n = 0; n < numProcesses; n++) // Puts process details in a Process object.
         {
             cin >> arrival >> burst >> priority;
             Process p(arrival, burst, priority);
+            p.processIndex = n + 1;  // The specs stated that the starting index is 1, not 0.
             processArray.push_back(p);
         }
 
-        // Determines which algorithm to use for scheduling.
         if (processName == "FCFS")
         {
-            cout << n << endl;
             FCFS algo(processArray);
             algo.run();
         }
-
+        else if (processName == "SJF")
+        {
+            cout << "not implemented yet sorry" << endl;
+        }
+        else if (processName == "SRTF")
+        {
+            cout << "not implemented yet sorry" << endl;
+        }
+        else if (processName == "P")
+        {
+            cout << "not implemented yet sorry" << endl;
+        }
+        else if (processName == "RR")
+        {
+            cout << "not implemented yet sorry" << endl;
+        }
         else
         {
-            cout << "not implemented yet sorry lods" << endl;
+            cout << "Wrong process name input" << endl;
         }
-
-        // for (Process x: processArray){
-        //     cout << x.arrivalTime << " " << x.burstTime << " " << x.priorityNum << " " << endl;
-        // }
     }
-    
+
     return 0;
 }
+
+// Left here for array testing purposes
+// for (int n = 0; n < <ARRAY_NAME_HERE>.size(); n++)
+// {
+//     Process p = <ARRAY_NAME_HERE>[n];
+//     cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << endl;
+// }
