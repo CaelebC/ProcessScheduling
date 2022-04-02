@@ -27,7 +27,8 @@
 #include <cstdio>
 #include <fstream>
 #include <string>
-#include <list>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
 
@@ -46,7 +47,7 @@ struct Process{
 };
 
 struct FCFS {
-    list<Process> processesInAlgorithm;
+    vector<Process> processesInAlgorithm;
     int elapsedTime;
     int processIndex;
 
@@ -56,11 +57,18 @@ struct FCFS {
     int turnaroundTime;
     int responseTime;
     
+
     void run(){
+        int itemLarger;
+        int itemSmaller;
+
+        for (Process p : processesInAlgorithm){
+            cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << endl; 
+        }
 
     }
 
-    FCFS(list<Process> processesInAlgorithm){
+    FCFS(vector<Process> processesInAlgorithm){
         this-> processesInAlgorithm = processesInAlgorithm;
     }
 
@@ -113,7 +121,7 @@ int main(){
 
     for(int n = 1; n <= testCases; n++) {
         // Information on lists found on https://www.guru99.com/cpp-list.html
-        list<Process> processList = {};
+        vector<Process> processArray = {};
 
         cin >> numProcesses >> processName;
         // cout << testCases << " " << processName << " " << numProcesses << endl;
@@ -127,20 +135,20 @@ int main(){
         for(int n = numProcesses; n > 0; n--){
             cin >> arrival >> burst >> priority;
             Process p(arrival, burst, priority);
-            processList.push_back(p);
+            processArray.push_back(p);
         }
 
         // Determines which algorithm to use for scheduling.
         if (processName == "FCFS"){
             cout << n << endl;
-            FCFS sched(processList);
-            sched.run();
+            FCFS algo(processArray);
+            algo.run();
         } 
         else {
             cout << "not implemented yet sorry lods" << endl;
         }
 
-        // for (Process x: processList){
+        // for (Process x: processArray){
         //     cout << x.arrivalTime << " " << x.burstTime << " " << x.priorityNum << " " << endl;
         // }
     }
