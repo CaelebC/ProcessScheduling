@@ -29,15 +29,19 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
 
-struct Process{
+// This struct is to create Process objects with the arrival, burst, and priority
+struct Process
+{
     int arrivalTime;
     int burstTime;
     int priorityNum;
 
-    Process(int arrival, int burst, int priority){
+    Process(int arrival, int burst, int priority)
+    {
         this-> arrivalTime = arrival;
         this-> burstTime = burst;
         this-> priorityNum = priority;
@@ -46,7 +50,36 @@ struct Process{
     ~Process(){}
 };
 
-struct FCFS {
+
+// These structs are for using the sort algorithm 
+struct OrderingByArrival
+{
+    inline bool operator() (const Process& struct1, const Process& struct2)
+    {
+        return struct1.arrivalTime < struct2.arrivalTime;
+    }
+};
+
+struct OrderingByBurst
+{
+    inline bool operator() (const Process& struct1, const Process& struct2)
+    {
+        return struct1.burstTime < struct2.burstTime;
+    }
+};
+
+struct OrderingByPriority
+{
+    inline bool operator() (const Process& struct1, const Process& struct2)
+    {
+        return struct1.priorityNum < struct2.priorityNum;
+    }
+};
+
+
+// These structs are for the schedulings
+struct FCFS 
+{
     vector<Process> processesInAlgorithm;
     int elapsedTime;
     int processIndex;
@@ -57,50 +90,61 @@ struct FCFS {
     int turnaroundTime;
     int responseTime;
     
-
-    void run(){
-        int itemLarger;
-        int itemSmaller;
-
-        for (Process p : processesInAlgorithm){
-            cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << endl; 
+    void run()
+    {
+        std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
+        
+        for (int n = 0; n < processesInAlgorithm.size(); n++)
+        {
+            Process p = processesInAlgorithm[n];
+            cout << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << endl;
         }
+
+
+        //  Process p = processesInAlgorithm[n];
+        //  cout << p.arrivalTime << p.burstTime << p.priorityNum << endl;
 
     }
 
-    FCFS(vector<Process> processesInAlgorithm){
+    FCFS(vector<Process> processesInAlgorithm)
+    {
         this-> processesInAlgorithm = processesInAlgorithm;
     }
 
     ~FCFS(){}
 };
 
-struct SJF {
+struct SJF
+{
 
 
     ~SJF(){}
 };
 
-struct SRTF {
+struct SRTF
+{
     
 
     ~SRTF(){}
 };
 
-struct Prio {
+struct Prio
+{
     
 
     ~Prio(){}
 };
 
-struct RR {
+struct RR
+{
     
 
     ~RR(){}
 };
 
 
-int main(){
+int main()
+{
     // Used to get the number of test cases and to store every line of the input
     string line;
     int testCases;
@@ -119,7 +163,8 @@ int main(){
     // This gets the 1st line and only the 1st line of the input & stores in the variable
     cin >> testCases;
 
-    for(int n = 1; n <= testCases; n++) {
+    for(int n = 1; n <= testCases; n++)
+    {
         // Information on lists found on https://www.guru99.com/cpp-list.html
         vector<Process> processArray = {};
 
@@ -127,24 +172,29 @@ int main(){
         // cout << testCases << " " << processName << " " << numProcesses << endl;
 
         // This is to catch the quantum of the RR if ever there is one.
-        if (processName == "RR"){
+        if (processName == "RR")
+        {
             cin >> quantum;
         }
 
         // Puts process details in a Process object.
-        for(int n = numProcesses; n > 0; n--){
+        for(int n = numProcesses; n > 0; n--)
+        {
             cin >> arrival >> burst >> priority;
             Process p(arrival, burst, priority);
             processArray.push_back(p);
         }
 
         // Determines which algorithm to use for scheduling.
-        if (processName == "FCFS"){
+        if (processName == "FCFS")
+        {
             cout << n << endl;
             FCFS algo(processArray);
             algo.run();
-        } 
-        else {
+        }
+
+        else
+        {
             cout << "not implemented yet sorry lods" << endl;
         }
 
