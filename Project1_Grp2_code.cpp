@@ -120,17 +120,19 @@ struct FCFS
         {
             Process p = processesInAlgorithm[n];
             
-            if (p.arrivalTime >= totalTimeElapsed)
+            if (p.arrivalTime > totalTimeElapsed)
             {
-                double timeDelay = (p.arrivalTime - totalTimeElapsed);
-                totalTimeElapsed += timeDelay;
+                totalTimeElapsed += (p.arrivalTime - totalTimeElapsed);
+            }
+            else if (p.arrivalTime < totalTimeElapsed)
+            {
+                totalWaitingTime += (totalTimeElapsed - p.arrivalTime);
+                totalResponseTime += (totalTimeElapsed - p.arrivalTime);
             }
             
             totalBurstTime += p.burstTime;
             totalTurnaroundTime += p.burstTime;
-            totalWaitingTime += 1;
-            totalResponseTime += 1;
-
+            
             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << "X" << endl;
             
             totalTimeElapsed += p.burstTime;  // This has to be here because of the output's format in the specs
