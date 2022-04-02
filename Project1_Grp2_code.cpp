@@ -42,6 +42,10 @@ struct Process
     double priorityNum;
     int processIndex;
 
+    double waitingTime;
+    double turnaroundTime;
+    double responseTime;
+
     Process(double arrival, double burst, double priority)
     {
         this-> arrivalTime = arrival;
@@ -85,30 +89,32 @@ void computation(double totalBurstTime, double totalTimeElapsed, double totalNum
     double throughput = totalNumProcesses / totalTimeElapsed;
     double waitingTime = totalWaitingTime / totalNumProcesses;
     double turnaroundTime = totalTurnaroundTime / totalNumProcesses;
-    double responseTime = totalResponseTime / totalNumProcesses;
+    double responseTime = totalResponseTime / totalNumProcesses;  // Total amount of time the processes ARE STILL WAITING to be executed
 
-    cout << "burst time: " << totalBurstTime << " time elapsed: " << totalTimeElapsed << endl;
     cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
     cout << "Throughput: " << throughput << endl;
     cout << "Waiting time: " << waitingTime << endl;
     cout << "Turnaround time: " << turnaroundTime << endl;
     cout << "Response time: " << responseTime << endl;
+
+    cout << "\n" << "totalBurstTime: " << totalBurstTime << " totalTimeElapsed: " << totalTimeElapsed << " totalNumProcesses: " << totalNumProcesses << endl;
+    cout << "totalWaitingTime: " << totalWaitingTime << " totalTurnaroundTime: " << totalTurnaroundTime << " totalResponseTime: " << totalResponseTime << endl;
 }
 
 // These structs are to schedule the processes
 struct FCFS 
 {
     vector<Process> processesInAlgorithm;
-    double totalBurstTime = 0;
-    double totalTimeElapsed = 0;
-    double totalNumProcesses = processesInAlgorithm.size();
-    double totalWaitingTime; 
-    double totalTurnaroundTime; 
-    double totalResponseTime;
-    
+
     void run()
     {
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
+        double totalBurstTime = 0;
+        double totalTimeElapsed = 0;
+        double totalNumProcesses = processesInAlgorithm.size();
+        double totalWaitingTime = 0;  // Total ammount of time the processes WENT BACK + ARE STILL WAITING to be executed
+        double totalTurnaroundTime = 0;  // Total amount of time the processes STARTING UNTIL ENDING + TIME WHEN IT GOES BACK TO WAITING
+        double totalResponseTime = 0;  // Total amount of time the processes ARE STILL WAITING to be executed
         
         for (int n = 0; n < processesInAlgorithm.size(); n++)
         {
@@ -118,22 +124,18 @@ struct FCFS
             {
                 double timeDelay = (p.arrivalTime - totalTimeElapsed);
                 totalTimeElapsed += timeDelay;
-                totalWaitingTime += timeDelay;
             }
             
             totalBurstTime += p.burstTime;
+            totalTurnaroundTime += p.burstTime;
+            totalWaitingTime += 1;
+            totalResponseTime += 1;
+
             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << "X" << endl;
-            totalTimeElapsed += p.burstTime;
-
-
-            cout << "totalwaitingtime: " << totalWaitingTime << endl;
-            cout << "totalturnaroundtime: " << totalTurnaroundTime << endl;
-            cout << "totalresponsetime: " << totalResponseTime << endl;
-            cout << "-----" << endl;
-
+            
+            totalTimeElapsed += p.burstTime;  // This has to be here because of the output's format in the specs
         }
-        
-        totalTurnaroundTime = totalBurstTime;
+
         computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
     }
 
@@ -197,7 +199,7 @@ int main()
     {
         vector<Process> processArray = {};
 
-        cout << "------SEPARATOR REMOVE BEFORE PASSING THIS PROJECT------" << endl;
+        cout << "------SEPARATOR IN MAIN. REMOVE BEFORE SUBMITTING------" << endl;
         cout << currentTestCaseNum << endl;
         cin >> numProcesses >> processName;
 
