@@ -45,7 +45,7 @@ struct Process
     double waitingTime = 0;
     double turnaroundTime = 0;
     double responseTime = 0;
-    bool readyToProcess = false;
+    bool hasArrived = false;
     bool processIsDone = false;
 
     Process(double arrival, double burst, double priority)
@@ -290,6 +290,7 @@ struct SRTF
 
                 if (p.arrivalTime <= totalTimeElapsed)
                 {
+                    p.hasArrived = true;
                     tempArray.push_back(p);
                     continue;
                 }
@@ -303,7 +304,7 @@ struct SRTF
 
             for (int n = 0; n < sortedArray.size(); n++)
             {
-                Process p = processesInAlgorithm[n];
+                Process p = sortedArray[n];
                 double computedRunTime = p.burstTime - pUpcoming.arrivalTime;
                 
                 p.burstTime = computedRunTime;
