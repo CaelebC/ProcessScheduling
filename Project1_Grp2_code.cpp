@@ -340,6 +340,7 @@ struct SRTF
                     p.processIsDone = true;
                     cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += timeRanFor;  // This has to be here because of the output's format in the specs
+                    runningArray.erase(runningArray.begin());
                     continue;
                 }
                 else if (p.burstTime > pUpcoming.burstTime)
@@ -357,6 +358,7 @@ struct SRTF
                     p.processIsDone = true;
                     cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += timeRanFor;  // This has to be here because of the output's format in the specs
+                    runningArray.erase(runningArray.begin());
                     continue;
                 }
 
