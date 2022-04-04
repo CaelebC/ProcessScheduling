@@ -16,6 +16,7 @@
 //////////////////////////////////////////////////////////////////////////
 ////////////
 // Information on vectors found on https://www.cplusplus.com/reference/vector/vector/
+// Changing an object property's value found on https://stackoverflow.com/questions/21141168/why-cant-i-change-objects-in-a-vector
 // 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -320,11 +321,13 @@ struct SRTF
 
             for (int n = 0; n < runningArray.size(); n++)
             {
-                Process p = runningArray[n];
-                Process pUpcoming = upcomingArray[n];
+                Process& p = runningArray[n];
+                Process& pUpcoming = upcomingArray[n];
 
-                cout << "p equals: " << p.arrivalTime << " " << p.burstTime << " " <<  p.priorityNum << " " << p.processIndex << endl;
-                cout << "pUpcoming equals: " << pUpcoming.arrivalTime << " " << pUpcoming.burstTime << " " <<  pUpcoming.priorityNum << " " << pUpcoming.processIndex << endl;
+                std::sort(runningArray.begin(), runningArray.end(), OrderingByBurst());
+
+                cout << "p equals: " << p.arrivalTime << " " << p.burstTime << " " <<  p.priorityNum << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
+                cout << "pUpcoming equals: " << pUpcoming.arrivalTime << " " << pUpcoming.burstTime << " " <<  pUpcoming.priorityNum << " " << pUpcoming.processIndex << " " << p.burstTimeProcessed << endl;
                 cout << "this is what's inside the runningArray array: " << "\n";
                 for (int n = 0; n < runningArray.size(); n++)
                 {
