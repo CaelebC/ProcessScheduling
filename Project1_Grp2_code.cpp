@@ -275,8 +275,8 @@ struct SRTF
         Process dummy(0, 0, 0);
         
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
-        vector<Process> runningArray = {dummy};
-        vector<Process> upcomingArray = {};
+        vector<Process> readyArray = {};
+        vector<Process> upcomingArray = {dummy};
         vector<Process> pausedArray = {};
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
@@ -286,49 +286,57 @@ struct SRTF
         double totalResponseTime = 0;  // Total amount of time the processes ARE STILL WAITING to be executed
 
         bool firstTime = true;
-        bool firstWhileRun = true;
+        bool lastElement = false;
 
-        while (runningArray.empty() == false)
+        while (upcomingArray.empty() == false || lastElement == true)
         {
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
-            {
-                if (firstWhileRun)
-                {
-                    firstWhileRun = false;
-                    runningArray.erase(runningArray.begin());
-                }
-                
-                Process p = processesInAlgorithm[n];
+            {   
+                Process& p = processesInAlgorithm[n];
 
                 if (p.arrivalTime <= totalTimeElapsed)
                 {
                     p.hasArrived = true;
-                    runningArray.push_back(p);
+                    readyArray.push_back(p);
                     processesInAlgorithm.erase(processesInAlgorithm.begin());
+
+                    if (processesInAlgorithm.empty() == true)
+                    {
+                        lastElement == true;
+                    }
                     continue;
                 }
+
+
             }
 
-            std::sort(runningArray.begin(), runningArray.end(), OrderingByBurst());
+            std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
             upcomingArray = processesInAlgorithm;
             // std::sort(upcomingArray.begin(), upcomingArray.end(), OrderingByBurst());
 
-            for (int n = 0; n < runningArray.size(); n++)
+            for (int n = 0; n < readyArray.size(); n++)
             {
-                Process& p = runningArray[n];
+                Process& p = readyArray[n];
                 Process& pUpcoming = upcomingArray[n];
                 
                 if (upcomingArray.empty())
                 {
                     Process& pUpcoming = p;
+                    lastElement = false;
                 }
 
                 cout << "p equals: " << p.arrivalTime << " " << p.burstTime << " " <<  p.priorityNum << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
                 cout << "pUpcoming equals: " << pUpcoming.arrivalTime << " " << pUpcoming.burstTime << " " <<  pUpcoming.priorityNum << " " << pUpcoming.processIndex << " " << p.burstTimeProcessed << endl;
-                cout << "this is what's inside the runningArray array: " << "\n";
-                for (int n = 0; n < runningArray.size(); n++)
+                cout << "this is what's inside the processesInAlgorithm array: " << "\n";
+                for (int n = 0; n < processesInAlgorithm.size(); n++)
                 {
-                    Process a = runningArray[n];
+                    Process a = processesInAlgorithm[n];
+                    cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
+                }
+                cout << "this is what's inside the readyArray array: " << "\n";
+                for (int n = 0; n < readyArray.size(); n++)
+                {
+                    Process a = readyArray[n];
                     cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
                 }
                 cout << "this is what's inside the upcomingArray array: " << "\n";
@@ -340,20 +348,20 @@ struct SRTF
                 cout << "\n";
 
 
-                if (processesInAlgorithm.empty() == false)
+                if (upcomingArray.empty() == false)
                 {
                     if (p.burstTime > pUpcoming.arrivalTime)  // When the 'upcoming' process has less time remaining
                     {
                         double pU_Arrival = pUpcoming.arrivalTime;
 
-                        totalBurstTime += pU_Arrival;  // Weird bug where if you use += or -=, the operation doesn't actualy execute
+                        totalBurstTime += pU_Arrival;
                         p.burstTime -= pU_Arrival;
                         p.burstTimeProcessed = pU_Arrival;
 
                         cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
                         totalTimeElapsed += pUpcoming.arrivalTime;  // This has to be here because of the output's format in the specs
-                        runningArray.push_back(pUpcoming);
-                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        readyArray.push_back(pUpcoming);
+                        upcomingArray.erase(upcomingArray.begin());
                         firstTime = false;
                         break;
                     }
@@ -368,15 +376,15 @@ struct SRTF
 
                         cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                         totalTimeElapsed += p_Burst;  // This has to be here because of the output's format in the specs
-                        runningArray.erase(runningArray.begin());
-                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        readyArray.erase(readyArray.begin());
+                        // upcomingArray.erase(upcomingArray.begin());
                         firstTime = false;
                         break;
                     }
                 }
                 else
                 {
-                    std::sort(runningArray.begin(), runningArray.end(), OrderingByBurst());
+                    std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
 
                     if (p.burstTime > pUpcoming.burstTime)  // When the 'upcoming' process has less time remaining
                     {
@@ -388,8 +396,8 @@ struct SRTF
 
                         cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
                         totalTimeElapsed += pU_Burst;  // This has to be here because of the output's format in the specs
-                        runningArray.push_back(pUpcoming);
-                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        readyArray.push_back(pUpcoming);
+                        upcomingArray.erase(upcomingArray.begin());
                         break;
                     }
                     else if (p.burstTime <= pUpcoming.burstTime)
@@ -403,8 +411,8 @@ struct SRTF
 
                         cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                         totalTimeElapsed += p_Burst;  // This has to be here because of the output's format in the specs
-                        runningArray.erase(runningArray.begin());
-                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        readyArray.erase(readyArray.begin());
+                        // upcomingArray.erase(upcomingArray.begin());
                         break;
                     }
                 }
