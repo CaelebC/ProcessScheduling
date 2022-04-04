@@ -168,22 +168,15 @@ struct SJF
         for (int n = 0; n < processesInAlgorithm.size(); n++)
         {
             Process p = processesInAlgorithm[n];
-            // cout << "\n";
-            // cout << "CURRENT PROCESS IN MAIN FOR LOOP: " << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
+            // cout << "CURRENTLY BEING PROCESSED IN main for loop: " << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
             
-            if (p.arrivalTime <= totalTimeElapsed)   // Process is/has been ready
+            if (p.arrivalTime <= totalTimeElapsed)   // Process that is/has been ready is put inside the temporary array to sort by burst time
             {
                 tempArray.push_back(p);
                 std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
-
-                // cout << "inside tempArray: \n";
-                // for (int n = 0; n < tempArray.size(); n++)  // just to see what's inside the temparray
-                // {
-                //     Process a = tempArray[n];
-                //     cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
-                // }
                 
-                if (processesInAlgorithm.size() - n > 1)  // This is to allow the last element of the array to be processed 
+                // This is to allow the last element of the main array to be processed by still going through code since continue isn't done
+                if (processesInAlgorithm.size() - n > 1)
                 {
                     continue;
                 }
@@ -194,6 +187,7 @@ struct SJF
                 for (int n = 0; n < tempArray.size(); n++)
                 {
                     Process ptemp = tempArray[n];
+                    // cout << "CURRENTLY BEING PROCESSED IN tempArray.empty() == false : " << ptemp.arrivalTime << " " << ptemp.burstTime << " " << ptemp.priorityNum << " " << ptemp.processIndex << endl;
             
                     if (ptemp.arrivalTime > totalTimeElapsed)  // Process isn't ready yet
                     {
@@ -216,15 +210,42 @@ struct SJF
                 tempArray = {};
                 tempArray.push_back(p);
                 std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
-                continue;
+
+                if (processesInAlgorithm.size() - n > 1)  // This is to allow the last element of the main array to be processed 
+                {
+                    continue;
+                }
+
+                for (int n = 0; n < tempArray.size(); n++)
+                {
+                    Process ptemp = tempArray[n];
+            
+                    if (ptemp.arrivalTime > totalTimeElapsed)  // Process isn't ready yet
+                    {
+                        totalTimeElapsed += (ptemp.arrivalTime - totalTimeElapsed);
+                    }
+                    else if (ptemp.arrivalTime <= totalTimeElapsed)  // Process is/has been ready
+                    {
+                        totalWaitingTime += (totalTimeElapsed - ptemp.arrivalTime);
+                        totalResponseTime += (totalTimeElapsed - ptemp.arrivalTime);
+                    }
+                    
+                    totalBurstTime += ptemp.burstTime;
+                    totalTurnaroundTime += ptemp.burstTime;
+                    
+                    cout << totalTimeElapsed << " " << ptemp.processIndex << " " << ptemp.burstTime << "X" << endl;
+                    
+                    totalTimeElapsed += ptemp.burstTime;  // This has to be here because of the output's format in the specs
+                }
+
             }
             else
             {
-                totalTimeElapsed += p.arrivalTime;
+                // cout << "CURRENTLY BEING PROCESSED IN else: " << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
+                totalTimeElapsed += (p.arrivalTime - totalTimeElapsed);
                 tempArray.push_back(p);
-                continue;
+                std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
             }
-
         }
 
         computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
