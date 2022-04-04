@@ -215,27 +215,32 @@ struct SJF
                 {
                     continue;
                 }
-
-                for (int n = 0; n < tempArray.size(); n++)
+                
+                else if ( (tempArray.size() == 1) && (processesInAlgorithm.size() -n == 1) )
                 {
-                    Process ptemp = tempArray[n];
-            
-                    if (ptemp.arrivalTime > totalTimeElapsed)  // Process isn't ready yet
+                    for (int n = 0; n < tempArray.size(); n++)
                     {
-                        totalTimeElapsed += (ptemp.arrivalTime - totalTimeElapsed);
+                        Process ptemp = tempArray[n];
+                
+                        if (ptemp.arrivalTime > totalTimeElapsed)  // Process isn't ready yet
+                        {
+                            totalTimeElapsed += (ptemp.arrivalTime - totalTimeElapsed);
+                        }
+                        
+                        // This else if statement is removed since the totalWaitingTime & totalResponseTime values will be wrong
+                        // else if (ptemp.arrivalTime <= totalTimeElapsed)
+                        // {
+                        //     totalWaitingTime += (totalTimeElapsed - ptemp.arrivalTime);
+                        //     totalResponseTime += (totalTimeElapsed - ptemp.arrivalTime);
+                        // }
+                        
+                        totalBurstTime += ptemp.burstTime;
+                        totalTurnaroundTime += ptemp.burstTime;
+                        
+                        cout << totalTimeElapsed << " " << ptemp.processIndex << " " << ptemp.burstTime << "X" << endl;
+                        
+                        totalTimeElapsed += ptemp.burstTime;  // This has to be here because of the output's format in the specs
                     }
-                    else if (ptemp.arrivalTime <= totalTimeElapsed)  // Process is/has been ready
-                    {
-                        totalWaitingTime += (totalTimeElapsed - ptemp.arrivalTime);
-                        totalResponseTime += (totalTimeElapsed - ptemp.arrivalTime);
-                    }
-                    
-                    totalBurstTime += ptemp.burstTime;
-                    totalTurnaroundTime += ptemp.burstTime;
-                    
-                    cout << totalTimeElapsed << " " << ptemp.processIndex << " " << ptemp.burstTime << "X" << endl;
-                    
-                    totalTimeElapsed += ptemp.burstTime;  // This has to be here because of the output's format in the specs
                 }
 
             }
