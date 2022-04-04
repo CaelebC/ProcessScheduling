@@ -274,6 +274,7 @@ struct SRTF
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         vector<Process> runningArray = {};
         vector<Process> upcomingArray = {};
+        vector<Process> pausedArray = {};
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
         double totalNumProcesses = processesInAlgorithm.size();
@@ -281,12 +282,11 @@ struct SRTF
         double totalTurnaroundTime = 0;  // Total amount of time the processes STARTING UNTIL ENDING + TIME WHEN IT GOES BACK TO WAITING
         double totalResponseTime = 0;  // Total amount of time the processes ARE STILL WAITING to be executed
 
-        while (processesInAlgorithm.empty() == 0)
-        {
-            // Process pUpcoming(0, 0, 0);
-            bool lastElement = false;
+        bool firstTime = true;
+        bool lastElement = false;
 
-            // Puts process(es) in runningArray for processing
+        while (processesInAlgorithm.empty() == false)
+        {
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
             {
                 Process p = processesInAlgorithm[n];
@@ -299,16 +299,13 @@ struct SRTF
                     continue;
                 }
 
-                if ( (n + 1) != processesInAlgorithm.size() )
-                {
-                    // pUpcoming = processesInAlgorithm[n+1];
-                }
-                else
+                if ( (n + 1) == processesInAlgorithm.size() )
                 {
                     lastElement = true;
-                }
-                
+                }                
             }
+            // Puts process in runningArray for processing
+            
 
             // cout << "this is what's inside the processInAlgorithm array: " << "\n";
             // for (int n = 0; n < processesInAlgorithm.size(); n++)
@@ -326,69 +323,90 @@ struct SRTF
                 Process p = runningArray[n];
                 Process pUpcoming = upcomingArray[n];
 
+                cout << "p equals: " << p.arrivalTime << " " << p.burstTime << " " <<  p.priorityNum << " " << p.processIndex << endl;
                 cout << "pUpcoming equals: " << pUpcoming.arrivalTime << " " << pUpcoming.burstTime << " " <<  pUpcoming.priorityNum << " " << pUpcoming.processIndex << endl;
-                
-                
-                double timeRanFor = pUpcoming.arrivalTime;
-                
-                totalBurstTime += timeRanFor;
-                p.burstTime -= timeRanFor;
-                p.burstTimeProcessed += timeRanFor;
-                
-                if (p.burstTime == 0)
+                cout << "this is what's inside the runningArray array: " << "\n";
+                for (int n = 0; n < runningArray.size(); n++)
                 {
-                    p.processIsDone = true;
-                    cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-                    totalTimeElapsed += timeRanFor;  // This has to be here because of the output's format in the specs
-                    runningArray.erase(runningArray.begin());
-                    continue;
+                    Process a = runningArray[n];
+                    cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
                 }
-                else if (p.burstTime > pUpcoming.burstTime)
+                cout << "this is what's inside the upcomingArray array: " << "\n";
+                for (int n = 0; n < upcomingArray.size(); n++)
                 {
-                    cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-                    totalTimeElapsed += timeRanFor;
-                    runningArray.push_back(pUpcoming);
-                    break;
+                    Process a = upcomingArray[n];
+                    cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
                 }
-                else if (p.burstTime < pUpcoming.burstTime)
-                {
-                    p.burstTimeProcessed += p.burstTime;
-                    p.burstTime -= p.burstTime;
-                    
-                    p.processIsDone = true;
-                    cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-                    totalTimeElapsed += timeRanFor;  // This has to be here because of the output's format in the specs
-                    runningArray.erase(runningArray.begin());
-                    continue;
-                }
+                cout << "\n";
 
+                if (firstTime)
+                {
+                    if (p.burstTime > pUpcoming.arrivalTime)
+                    {
+                        double pUpcomingArrival = pUpcoming.arrivalTime;
+                        totalBurstTime = (totalBurstTime + pUpcomingArrival);  // Weird bug where if you use += or -=, the operation doesn't actualy execute
+                        p.burstTime = (p.burstTime - pUpcomingArrival);
+                        p.burstTimeProcessed = (p.burstTimeProcessed + pUpcomingArrival);
 
-                // if (p.processIsDone == true)
-                // {
-                //     cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << "X" << endl;
-                // }
-                // else
-                // {
-                //     cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << endl;
-                // }
+                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
+                        totalTimeElapsed += pUpcoming.arrivalTime;  // This has to be here because of the output's format in the specs
+                        runningArray.push_back(pUpcoming);
+                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        firstTime = false;
+                        break;
+                    }
+                    else if (p.burstTime < pUpcoming.arrivalTime)
+                    {
+                        double pBurstTemp = p.burstTime;
+                        totalBurstTime = (totalBurstTime + pBurstTemp);
+                        p.burstTimeProcessed = (p.burstTimeProcessed + pBurstTemp);
+                        p.burstTime = (p.burstTime - pBurstTemp);
+                        p.processIsDone = true;
+
+                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                        totalTimeElapsed += pBurstTemp;  // This has to be here because of the output's format in the specs
+                        runningArray.erase(runningArray.begin());
+                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        firstTime = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (p.burstTime > pUpcoming.burstTime)
+                    {
+                        double pUpcomingBurst = pUpcoming.burstTime;
+                        totalBurstTime = (totalBurstTime + pUpcomingBurst);  // Weird bug where if you use += or -=, the operation doesn't actualy execute
+                        p.burstTime = (p.burstTime - pUpcomingBurst);
+                        p.burstTimeProcessed = (p.burstTimeProcessed + pUpcomingBurst);
+
+                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
+                        totalTimeElapsed += pUpcoming.arrivalTime;  // This has to be here because of the output's format in the specs
+                        runningArray.push_back(pUpcoming);
+                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        break;
+                    }
+                    else if (p.burstTime < pUpcoming.burstTime)
+                    {
+                        double pBurstTemp = p.burstTime;
+                        totalBurstTime = (totalBurstTime + pBurstTemp);
+                        p.burstTimeProcessed = (p.burstTimeProcessed + pBurstTemp);
+                        p.burstTime = (p.burstTime - pBurstTemp);
+                        p.processIsDone = true;
+
+                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                        totalTimeElapsed += pBurstTemp;  // This has to be here because of the output's format in the specs
+                        runningArray.erase(runningArray.begin());
+                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        break;
+                    }
+                }
+                
             }
 
             cout << "end of while loop" << "\n" << endl;
             
         }
-
-
-
-
-        // -------Printing section-------
-        // totalBurstTime += ptemp.burstTime;
-        // totalTurnaroundTime += ptemp.burstTime;
-        
-        // cout << totalTimeElapsed << " " << ptemp.processIndex << " " << ptemp.burstTime << "X" << endl;
-        
-        // totalTimeElapsed += ptemp.burstTime;  // This has to be here because of the output's format in the specs
-
-        // computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
     }
 
     SRTF(vector<Process> processesInAlgorithm)
