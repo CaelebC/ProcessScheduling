@@ -42,10 +42,11 @@ struct Process
     double priorityNum;
     int processIndex;
 
-    double waitingTime;
-    double turnaroundTime;
-    double responseTime;
+    double waitingTime = 0;
+    double turnaroundTime = 0;
+    double responseTime = 0;
     bool readyToProcess = false;
+    bool processIsDone = false;
 
     Process(double arrival, double burst, double priority)
     {
@@ -168,7 +169,6 @@ struct SJF
         for (int n = 0; n < processesInAlgorithm.size(); n++)
         {
             Process p = processesInAlgorithm[n];
-            // cout << "CURRENTLY BEING PROCESSED IN main for loop: " << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
             
             if (p.arrivalTime <= totalTimeElapsed)   // Process that is/has been ready is put inside the temporary array to sort by burst time
             {
@@ -266,7 +266,85 @@ struct SJF
 
 struct SRTF
 {
-    
+    vector<Process> processesInAlgorithm;
+
+    void run()
+    {
+        std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
+        vector<Process> tempArray = {};
+        vector<Process> sortedArray = {};
+        double totalBurstTime = 0;
+        double totalTimeElapsed = 0;
+        double totalNumProcesses = processesInAlgorithm.size();
+        double totalWaitingTime = 0;  // Total ammount of time the processes WENT BACK + ARE STILL WAITING to be executed
+        double totalTurnaroundTime = 0;  // Total amount of time the processes STARTING UNTIL ENDING + TIME WHEN IT GOES BACK TO WAITING
+        double totalResponseTime = 0;  // Total amount of time the processes ARE STILL WAITING to be executed
+
+        while (processesInAlgorithm.empty() == 0)
+        {
+            Process pUpcoming(0, 0, 0);
+
+            for (int n = 0; n < processesInAlgorithm.size(); n++)
+            {
+                Process p = processesInAlgorithm[n];
+
+                if (p.arrivalTime <= totalTimeElapsed)
+                {
+                    tempArray.push_back(p);
+                    continue;
+                }
+
+                pUpcoming = processesInAlgorithm[n+1];
+            }
+
+            std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
+            sortedArray = tempArray;
+            tempArray = {};
+
+            for (int n = 0; n < sortedArray.size(); n++)
+            {
+                Process p = processesInAlgorithm[n];
+                double computedRunTime = p.burstTime - pUpcoming.arrivalTime;
+                
+                p.burstTime = computedRunTime;
+                totalBurstTime += computedRunTime;
+
+                cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime; 
+                if (p.processIsDone == 1)
+                {
+                    cout << "X" << endl;
+                }
+                else
+                {
+                    cout << "\n";
+                }
+
+                totalTimeElapsed += computedRunTime;  // This has to be here because of the output's format in the specs
+
+            }
+
+
+
+        }
+
+
+
+
+        // -------Printing section-------
+        // totalBurstTime += ptemp.burstTime;
+        // totalTurnaroundTime += ptemp.burstTime;
+        
+        // cout << totalTimeElapsed << " " << ptemp.processIndex << " " << ptemp.burstTime << "X" << endl;
+        
+        // totalTimeElapsed += ptemp.burstTime;  // This has to be here because of the output's format in the specs
+
+        // computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+    }
+
+    SRTF(vector<Process> processesInAlgorithm)
+    {
+        this-> processesInAlgorithm = processesInAlgorithm;
+    }
 
     ~SRTF(){}
 };
@@ -338,7 +416,8 @@ int main()
         }
         else if (processName == "SRTF")
         {
-            cout << "not implemented yet sorry" << endl;
+            SRTF algo(processArray);
+            algo.run();
         }
         else if (processName == "P")
         {
