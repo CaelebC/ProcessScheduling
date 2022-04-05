@@ -277,11 +277,6 @@ struct SRTF
         vector<Process> readyArray = {};
         double processesCompleted = 0;
 
-        // This is to keep track of the previous process before switching.
-        // The dummy object is needed to be able to create a Process obj with a & (process obj that could be modified).
-        Process dummy(0, 0, 0);
-        Process& previousProcess = dummy;  
-
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
         double totalNumProcesses = processesInAlgorithm.size();
@@ -332,8 +327,7 @@ struct SRTF
                 if (p.firstRun || p.inWaiting)
                 {
                     p.playPauseTime = totalTimeElapsed;
-                    previousProcess = p;
-                    
+
                     if (p.firstRun)
                     {
                         p.originalStartTime = p.playPauseTime;
@@ -344,27 +338,26 @@ struct SRTF
                 }
 
                 // Detects if a new process is in readyArray, which could mean a switch in process
+                // This also makes the switch needed
                 if (readyArray.size() > 1)  
                 {
-                    bool wentThroughLoop = false;
-
-                    for (int n = 1; n < readyArray.size(); n++)
-                    {
+                    int n = 1;
+                    while (readyArray.empty() == false && n < readyArray.size())
+                    {   
                         Process& pNext = readyArray[n];
                         if (p.burstTime > pNext.burstTime)
                         {
                             cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
                             p.burstTimeProcessed = 0;
                             p.inWaiting = true;
-                            previousProcess = p;
-                            wentThroughLoop = true;
                             std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
                             break;
                         }
-                    }
-                    if (wentThroughLoop)
-                    {
-                        continue;
+                        else
+                        {
+                            n += 1;
+                            continue;
+                        }
                     }
                 }
                   
@@ -386,18 +379,19 @@ struct SRTF
                     totalResponseTime += p.responseTime;
                     totalWaitingTime += p.waitingTime;
                     readyArray.erase(readyArray.begin());
+                    std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
                     continue;
                 }
                 else
                 {
                     totalTimeElapsed += runTime;
-                    previousProcess = p;
                     continue;
                 }
             }
             else
             {
                 totalTimeElapsed += runTime;
+                continue;
             }
         }
 
