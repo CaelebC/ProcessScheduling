@@ -363,12 +363,12 @@ struct SRTF
                     cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += runTime;
                     p.turnaroundTime = (totalTimeElapsed - p.originalStartTime);
-                    p.waitingTime = (p.turnaroundTime - p.originalBurstTime);
                     p.responseTime = (p.originalStartTime - p.arrivalTime);
+                    p.waitingTime = (p.turnaroundTime - p.originalBurstTime) + p.responseTime;
                     
                     totalTurnaroundTime += p.turnaroundTime;
-                    totalWaitingTime += p.waitingTime;
                     totalResponseTime += p.responseTime;
+                    totalWaitingTime += p.waitingTime;
                     readyArray.erase(readyArray.begin());
                     continue;
                 }
