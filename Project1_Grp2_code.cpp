@@ -109,8 +109,9 @@ void computation(double totalBurstTime, double totalTimeElapsed, double totalNum
     cout << "Turnaround time: " << turnaroundTime << endl;
     cout << "Response time: " << responseTime << endl;
 
-    cout << "\n" << "totalBurstTime: " << totalBurstTime << " totalTimeElapsed: " << totalTimeElapsed << " totalNumProcesses: " << totalNumProcesses << endl;
-    cout << "totalWaitingTime: " << totalWaitingTime << " totalTurnaroundTime: " << totalTurnaroundTime << " totalResponseTime: " << totalResponseTime << endl;
+    // Code commented out. This was used for testing purposes.
+    // cout << "\n" << "totalBurstTime: " << totalBurstTime << " totalTimeElapsed: " << totalTimeElapsed << " totalNumProcesses: " << totalNumProcesses << endl;
+    // cout << "totalWaitingTime: " << totalWaitingTime << " totalTurnaroundTime: " << totalTurnaroundTime << " totalResponseTime: " << totalResponseTime << endl;
 }
 
 // These structs are to schedule the processes
@@ -770,12 +771,6 @@ int main()
 }
 
 // Left here for array testing purposes
-// for (int n = 0; n < ARRAY_NAME_HERE.size(); n++)
-// {
-//     Process a = ARRAY_NAME_HERE[n];
-//     cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
-// }
-
 // cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << "  inWaiting: " << p.inWaiting << endl;
 // cout << "this is what's inside the processesInAlgo array: " << "\n";
 // for (int n = 0; n < processesInAlgorithm.size(); n++)
