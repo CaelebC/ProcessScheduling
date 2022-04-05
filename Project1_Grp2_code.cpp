@@ -45,6 +45,8 @@ struct Process
 
     double burstTimeProcessed = 0;
     double playPauseTime = 0; 
+    double originalStartTime;
+    double originalBurstTime;
 
     double waitingTime = 0;
     double turnaroundTime = 0;
@@ -63,7 +65,6 @@ struct Process
 
     ~Process(){}
 };
-
 
 // These structs are to be used by the std::sort 
 struct OrderingByArrival
@@ -303,6 +304,7 @@ struct SRTF
 
                 if (p.arrivalTime <= totalTimeElapsed)
                 {
+                    p.originalBurstTime = p.burstTime;
                     readyArray.push_back(p);
                     processesInAlgorithm.erase(processesInAlgorithm.begin());
                     continue;
@@ -317,6 +319,12 @@ struct SRTF
                 {
                     p.playPauseTime = totalTimeElapsed;
                     previousProcess = p;
+                    
+                    if (p.firstRun)
+                    {
+                        p.originalStartTime = p.playPauseTime;
+                    }
+
                     p.firstRun = false;
                     p.inWaiting = false;
                 }
@@ -354,6 +362,13 @@ struct SRTF
                     processesCompleted += 1;
                     cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += runTime;
+                    p.turnaroundTime = (totalTimeElapsed - p.originalStartTime);
+                    p.waitingTime = (p.turnaroundTime - p.originalBurstTime);
+                    p.responseTime = (p.originalStartTime - p.arrivalTime);
+                    
+                    totalTurnaroundTime += p.turnaroundTime;
+                    totalWaitingTime += p.waitingTime;
+                    totalResponseTime += p.responseTime;
                     readyArray.erase(readyArray.begin());
                     continue;
                 }
