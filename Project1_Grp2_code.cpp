@@ -44,9 +44,12 @@ struct Process
     int processIndex;
 
     double burstTimeProcessed = 0;
+    double startTime = 0; 
+
     double waitingTime = 0;
     double turnaroundTime = 0;
     double responseTime = 0;
+
     bool hasArrived = false;
     bool processIsDone = false;
 
@@ -274,6 +277,9 @@ struct SRTF
     {        
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         vector<Process> readyArray = {};
+        vector<Process> waitingArray = {};
+
+        double processesCompleted = 0;
 
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
@@ -285,7 +291,11 @@ struct SRTF
         bool firstTime = true;
         bool lastElement = false;
 
-        while (processesInAlgorithm.empty() == false)
+        int previousIndex = 0;
+        Process dummy(0, 0, 0);
+        Process& previousProcess = dummy;
+
+        while (processesCompleted <= processesInAlgorithm.size())
         {
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
             {   
@@ -306,205 +316,161 @@ struct SRTF
                 }
             }
 
+            double shortest;
+
             std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
 
-            for (int n = 0; n < readyArray.size(); n++)
+            if (readyArray.empty() == false)
             {
-                Process& p = readyArray[n];
-                Process& pUpcoming = processesInAlgorithm[n];
-                std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
+                double runTime = 1;  // For now, every process will be run for every 1 unit of time
+                Process& p = readyArray[0];
+                
+                if (firstTime)
+                {
+                    previousProcess = p;
+                }
 
+                if (readyArray.size() > 1)  // New process detected in readyArray, meaning possible switch
+                {
+                    cout << previousProcess.startTime << " " << previousProcess.processIndex << " " << previousProcess.burstTimeProcessed << endl;
+                    totalTimeElapsed += runTime;
+                }
+                  
                 cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << endl;
-                cout << "pUpcoming --> " << "index: " << pUpcoming.processIndex << "  arrivalTime: " << pUpcoming.arrivalTime << "  burstTime: " << pUpcoming.burstTime << "  burstTimeProcessed: " << pUpcoming.burstTimeProcessed << endl;
-                cout << "this is what's inside the processesInAlgorithm array: " << "\n";
                 for (int n = 0; n < processesInAlgorithm.size(); n++)
-                    {
-                        Process a = processesInAlgorithm[n];
-                        cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
-                    }
+                {
+                    Process a = processesInAlgorithm[n];
+                    cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
+                }
                 cout << "this is what's inside the readyArray array: " << "\n";
                 for (int n = 0; n < readyArray.size(); n++)
-                    {
-                        Process a = readyArray[n];
-                        cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
-                    }
+                {
+                    Process a = readyArray[n];
+                    cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
+                }
                 cout << endl;
 
 
-                if (firstTime)
+                if (p.burstTimeProcessed == 0)
                 {
-                    if (p.burstTime > pUpcoming.arrivalTime)  // Determines whether ready process is longer than the upcoming process (soon to be ready)
-                    {
-                        firstTime = false;
-                        totalBurstTime += pUpcoming.arrivalTime;
-                        p.burstTimeProcessed += pUpcoming.arrivalTime;
-                        p.burstTime -= pUpcoming.arrivalTime;
+                    p.startTime = totalTimeElapsed;
+                }
 
-                        readyArray.push_back(pUpcoming);
-                        processesInAlgorithm.erase(processesInAlgorithm.begin());
+                p.burstTime -= runTime;
+                p.burstTimeProcessed += runTime;
+                totalBurstTime += runTime;
 
-                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-                        totalTimeElapsed += pUpcoming.arrivalTime;
-                        break;
-                    }
-                    else if (p.burstTime <= pUpcoming.arrivalTime)  // When current process is faster than the arrival time of the upcoming process
-                    {
-                        firstTime = false;
-                        totalBurstTime += p.arrivalTime;
-                        p.burstTimeProcessed += p.burstTime;
-                        p.burstTime -= p.burstTime;
-
-                        readyArray.pop_back();
-                        
-                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-                        totalTimeElapsed += pUpcoming.arrivalTime;
-                        break;
-                    }
+                
+                if (p.burstTime == 0)
+                {
+                    processesCompleted += 1;
+                    cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                    totalTimeElapsed += runTime;
+                    continue;
                 }
                 else
                 {
-                    if (p.burstTime > pUpcoming.arrivalTime)  // Determines whether ready process is longer than the upcoming process (soon to be ready)
-                    {
-                        firstTime = false;
-                        totalBurstTime += pUpcoming.arrivalTime;
-                        p.burstTimeProcessed += pUpcoming.arrivalTime;
-                        p.burstTime -= pUpcoming.arrivalTime;
-
-                        readyArray.push_back(pUpcoming);
-                        processesInAlgorithm.erase(processesInAlgorithm.begin());
-
-                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-                        totalTimeElapsed += pUpcoming.arrivalTime;
-                        break;
-                    }
-                    else if (p.burstTime <= pUpcoming.arrivalTime)  // When current process is faster than the arrival time of the upcoming process
-                    {
-                        firstTime = false;
-                        totalBurstTime += p.arrivalTime;
-                        p.burstTimeProcessed += p.burstTime;
-                        p.burstTime -= p.burstTime;
-
-                        readyArray.pop_back();
-                        
-                        cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-                        totalTimeElapsed += pUpcoming.arrivalTime;
-                        break;
-                    }
+                    totalTimeElapsed += runTime;
+                    continue;
                 }
-                
-                
-
-                
             }
+
+
 
 
 
             // for (int n = 0; n < readyArray.size(); n++)
             // {
-            //     Process& p = readyArray[n];
-            //     Process& pUpcoming = upcomingArray[n];
-                
-            //     if (upcomingArray.empty())
-            //     {
-            //         Process& pUpcoming = p;
-            //         lastElement = false;
-            //     }
+            //     std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
+            //     std::sort(waitingArray.begin(), waitingArray.end(), OrderingByBurst());
 
-            //     cout << "p equals: " << p.arrivalTime << " " << p.burstTime << " " <<  p.priorityNum << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-            //     cout << "pUpcoming equals: " << pUpcoming.arrivalTime << " " << pUpcoming.burstTime << " " <<  pUpcoming.priorityNum << " " << pUpcoming.processIndex << " " << p.burstTimeProcessed << endl;
+            //     Process& p = readyArray[n];
+            //     Process& pUpcoming = processesInAlgorithm[n];
+                
+
+            //     cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << endl;
+            //     cout << "pUpcoming --> " << "index: " << pUpcoming.processIndex << "  arrivalTime: " << pUpcoming.arrivalTime << "  burstTime: " << pUpcoming.burstTime << "  burstTimeProcessed: " << pUpcoming.burstTimeProcessed << endl;
             //     cout << "this is what's inside the processesInAlgorithm array: " << "\n";
             //     for (int n = 0; n < processesInAlgorithm.size(); n++)
-            //     {
-            //         Process a = processesInAlgorithm[n];
-            //         cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
-            //     }
+            //         {
+            //             Process a = processesInAlgorithm[n];
+            //             cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
+            //         }
             //     cout << "this is what's inside the readyArray array: " << "\n";
             //     for (int n = 0; n < readyArray.size(); n++)
-            //     {
-            //         Process a = readyArray[n];
-            //         cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
-            //     }
-            //     cout << "this is what's inside the upcomingArray array: " << "\n";
-            //     for (int n = 0; n < upcomingArray.size(); n++)
-            //     {
-            //         Process a = upcomingArray[n];
-            //         cout << a.arrivalTime << " " << a.burstTime << " " << a.priorityNum << " " << a.processIndex << endl;
-            //     }
-            //     cout << "\n";
-
-
-            //     if (upcomingArray.empty() == false)
-            //     {
-            //         if (p.burstTime > pUpcoming.arrivalTime)  // When the 'upcoming' process has less time remaining
             //         {
-            //             double pU_Arrival = pUpcoming.arrivalTime;
+            //             Process a = readyArray[n];
+            //             cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
+            //         }
+            //     cout << endl;
 
-            //             totalBurstTime += pU_Arrival;
-            //             p.burstTime -= pU_Arrival;
-            //             p.burstTimeProcessed = pU_Arrival;
+
+            //     if (firstTime)
+            //     {
+            //         if (p.burstTime > pUpcoming.arrivalTime)  // Determines whether ready process is longer than the upcoming process (soon to be ready)
+            //         {
+            //             firstTime = false;
+            //             totalBurstTime += pUpcoming.arrivalTime;
+            //             p.burstTimeProcessed += pUpcoming.arrivalTime;
+            //             p.burstTime -= pUpcoming.arrivalTime;
+
+            //             waitingArray.push_back(p);
+            //             readyArray.push_back(pUpcoming);
+            //             processesInAlgorithm.erase(processesInAlgorithm.begin());
 
             //             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-            //             totalTimeElapsed += pUpcoming.arrivalTime;  // This has to be here because of the output's format in the specs
-            //             readyArray.push_back(pUpcoming);
-            //             upcomingArray.erase(upcomingArray.begin());
-            //             firstTime = false;
+            //             totalTimeElapsed += pUpcoming.arrivalTime;
             //             break;
             //         }
-            //         else if (p.burstTime <= pUpcoming.arrivalTime)
+            //         else if (p.burstTime <= pUpcoming.arrivalTime)  // When current process is faster than the arrival time of the upcoming process
             //         {
-            //             double p_Burst = p.burstTime;
-
-            //             totalBurstTime += p_Burst;
-            //             p.burstTimeProcessed = p_Burst;
-            //             p.burstTime -= p_Burst;
-            //             p.processIsDone = true;
-
-            //             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-            //             totalTimeElapsed += p_Burst;  // This has to be here because of the output's format in the specs
-            //             readyArray.erase(readyArray.begin());
-            //             // upcomingArray.erase(upcomingArray.begin());
             //             firstTime = false;
+            //             totalBurstTime += p.burstTime;
+            //             p.burstTimeProcessed += p.burstTime;
+            //             p.burstTime -= p.burstTime;
+
+            //             readyArray.pop_back();
+                        
+            //             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+            //             totalTimeElapsed += pUpcoming.arrivalTime;
             //             break;
             //         }
             //     }
-            //     else
+            //     else if (waitingArray.empty())
             //     {
-            //         std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
-
-            //         if (p.burstTime > pUpcoming.burstTime)  // When the 'upcoming' process has less time remaining
+            //         if (p.burstTime > pUpcoming.arrivalTime)  // Determines whether ready process is longer than the upcoming process (soon to be ready)
             //         {
-            //             double pU_Burst = pUpcoming.burstTime;
+            //             totalBurstTime += pUpcoming.arrivalTime;
+            //             p.burstTimeProcessed += pUpcoming.arrivalTime;
+            //             p.burstTime -= pUpcoming.arrivalTime;
 
-            //             totalBurstTime += pU_Burst;
-            //             p.burstTime -= pU_Burst;
-            //             p.burstTimeProcessed = pU_Burst;
+            //             readyArray.push_back(pUpcoming);
+            //             processesInAlgorithm.erase(processesInAlgorithm.begin());
 
             //             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-            //             totalTimeElapsed += pU_Burst;  // This has to be here because of the output's format in the specs
-            //             readyArray.push_back(pUpcoming);
-            //             upcomingArray.erase(upcomingArray.begin());
+            //             totalTimeElapsed += pUpcoming.arrivalTime;
             //             break;
             //         }
-            //         else if (p.burstTime <= pUpcoming.burstTime)
+            //         else if (p.burstTime <= pUpcoming.arrivalTime)  // When current process is faster than the arrival time of the upcoming process
             //         {
-            //             double p_Burst = p.burstTime;
+            //             totalBurstTime += p.burstTime;
+            //             p.burstTimeProcessed += p.burstTime;
+            //             p.burstTime -= p.burstTime;
 
-            //             totalBurstTime += p_Burst;
-            //             p.burstTimeProcessed = p_Burst;
-            //             p.burstTime -= p_Burst;
-            //             p.processIsDone = true;
-
+            //             readyArray.pop_back();
+                        
             //             cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-            //             totalTimeElapsed += p_Burst;  // This has to be here because of the output's format in the specs
-            //             readyArray.erase(readyArray.begin());
-            //             // upcomingArray.erase(upcomingArray.begin());
+            //             totalTimeElapsed += pUpcoming.arrivalTime;
             //             break;
             //         }
             //     }
+                
+                
+
                 
             // }
 
-            cout << "----------end of while loop----------" << "\n" << endl;
+            // cout << "----------end of while loop----------" << "\n" << endl;
             
         }
     }
