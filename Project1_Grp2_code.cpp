@@ -168,7 +168,7 @@ struct SJF
     void run()
     {
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
-        vector<Process> tempArray = {};
+        vector<Process> readyArray = {};
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
         double totalNumProcesses = processesInAlgorithm.size();
@@ -180,10 +180,10 @@ struct SJF
         {
             Process p = processesInAlgorithm[n];
             
-            if (p.arrivalTime <= totalTimeElapsed)   // Process that is/has been ready is put inside the temporary array to sort by burst time
+            if (p.arrivalTime <= totalTimeElapsed)   // Process that is/has been ready is put inside the readyArray to sort by burst time
             {
-                tempArray.push_back(p);
-                std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
+                readyArray.push_back(p);
+                std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
                 
                 // This is to allow the last element of the main array to be processed by still going through code since continue isn't done
                 if (processesInAlgorithm.size() - n > 1)
@@ -192,13 +192,12 @@ struct SJF
                 }
             }
 
-            if (tempArray.empty() == false)
+            if (readyArray.empty() == false)
             {
-                for (int n = 0; n < tempArray.size(); n++)
+                for (int n = 0; n < readyArray.size(); n++)
                 {
-                    Process ptemp = tempArray[n];
-                    // cout << "CURRENTLY BEING PROCESSED IN tempArray.empty() == false : " << ptemp.arrivalTime << " " << ptemp.burstTime << " " << ptemp.priorityNum << " " << ptemp.processIndex << endl;
-            
+                    Process ptemp = readyArray[n];
+
                     if (ptemp.arrivalTime > totalTimeElapsed)  // Process isn't ready yet
                     {
                         totalTimeElapsed += (ptemp.arrivalTime - totalTimeElapsed);
@@ -217,32 +216,25 @@ struct SJF
                     totalTimeElapsed += ptemp.burstTime;  // This has to be here because of the output's format in the specs
                 }
 
-                tempArray = {};
-                tempArray.push_back(p);
-                std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
+                readyArray = {};
+                readyArray.push_back(p);
+                std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
 
                 if (processesInAlgorithm.size() - n > 1)  // This is to allow the last element of the main array to be processed 
                 {
                     continue;
                 }
                 
-                else if ( (tempArray.size() == 1) && (processesInAlgorithm.size() -n == 1) )
+                else if ( (readyArray.size() == 1) && (processesInAlgorithm.size() -n == 1) )
                 {
-                    for (int n = 0; n < tempArray.size(); n++)
+                    for (int n = 0; n < readyArray.size(); n++)
                     {
-                        Process ptemp = tempArray[n];
+                        Process ptemp = readyArray[n];
                 
-                        if (ptemp.arrivalTime > totalTimeElapsed)  // Process isn't ready yet
+                        if (ptemp.arrivalTime > totalTimeElapsed)  // If true, process isn't ready yet
                         {
                             totalTimeElapsed += (ptemp.arrivalTime - totalTimeElapsed);
                         }
-                        
-                        // This else if statement is removed since the totalWaitingTime & totalResponseTime values will be wrong
-                        // else if (ptemp.arrivalTime <= totalTimeElapsed)
-                        // {
-                        //     totalWaitingTime += (totalTimeElapsed - ptemp.arrivalTime);
-                        //     totalResponseTime += (totalTimeElapsed - ptemp.arrivalTime);
-                        // }
                         
                         totalBurstTime += ptemp.burstTime;
                         totalTurnaroundTime += ptemp.burstTime;
@@ -256,10 +248,9 @@ struct SJF
             }
             else
             {
-                // cout << "CURRENTLY BEING PROCESSED IN else: " << p.arrivalTime << " " << p.burstTime << " " << p.priorityNum << " " << p.processIndex << endl;
                 totalTimeElapsed += (p.arrivalTime - totalTimeElapsed);
-                tempArray.push_back(p);
-                std::sort(tempArray.begin(), tempArray.end(), OrderingByBurst());
+                readyArray.push_back(p);
+                std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
             }
         }
 
@@ -301,6 +292,7 @@ struct SRTF
         {
             double runTime = 1;  // Every process will be run for every unit of time dictated here
 
+            // Adds processes which have arrived in the readyArray
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
             {   
                 Process& p = processesInAlgorithm[n];
@@ -314,10 +306,12 @@ struct SRTF
                 }
             }
 
+            // If else loop to determine if readyArray is empty, if it is then totalElapsedTime will be incremented
             if (readyArray.empty() == false)
             {
                 Process& p = readyArray[0];
 
+                // To record times when the process goes in/out of the readyArray
                 if (p.firstRun || p.inWaiting)
                 {
                     p.playPauseTime = totalTimeElapsed;
@@ -332,7 +326,8 @@ struct SRTF
                     p.inWaiting = false;
                 }
 
-                if (readyArray.size() > 1)  // New process detected in readyArray, meaning possible switch
+                // Detects if a new process is in readyArray, which could mean a switch in process
+                if (readyArray.size() > 1)  
                 {
                     bool wentThroughLoop = false;
 
@@ -360,6 +355,7 @@ struct SRTF
                 p.burstTimeProcessed += runTime;
                 totalBurstTime += runTime;
 
+                // When burstTime is 0, the totals variables are modified accordingly
                 if (p.burstTime == 0)
                 {
                     processesCompleted += 1;
@@ -426,6 +422,7 @@ struct Prio
         {
             double runTime = 1;  // Every process will be run for every unit of time dictated here
 
+            // Adds processes which have arrived in the readyArray
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
             {   
                 Process& p = processesInAlgorithm[n];
@@ -439,10 +436,12 @@ struct Prio
                 }
             }
 
+            // If else loop to determine if readyArray is empty, if it is then totalElapsedTime will be incremented
             if (readyArray.empty() == false)
             {
                 Process& p = readyArray[0];
 
+                // To record times when the process goes in/out of the readyArray
                 if (p.firstRun || p.inWaiting)
                 {
                     p.playPauseTime = totalTimeElapsed;
@@ -457,7 +456,8 @@ struct Prio
                     p.inWaiting = false;
                 }
 
-                if (readyArray.size() > 1)  // New process detected in readyArray, meaning possible switch
+                // Detects if a new process is in readyArray, which could mean a switch in process
+                if (readyArray.size() > 1)
                 {
                     bool wentThroughLoop = false;
 
@@ -485,6 +485,7 @@ struct Prio
                 p.burstTimeProcessed += runTime;
                 totalBurstTime += runTime;
 
+                // When burstTime is 0, the totals variables are modified accordingly
                 if (p.burstTime == 0)
                 {
                     processesCompleted += 1;
@@ -535,7 +536,7 @@ struct RR
         vector<Process> readyArray = {};
         double processesCompleted = 0;
 
-        // This is to keep track of the previous process before switching.
+        // This is to be able to temporarily store the current process after the its removal in the readyArray.
         // The dummy object is needed to be able to create a Process obj with a & (process obj that could be modified).
         Process dummy(0, 0, 0);
         Process& tempProcess = dummy;  
@@ -552,6 +553,7 @@ struct RR
         {
             double runTime = quantum;  // Every process will be run for every unit of time dictated here
 
+            // Adds processes which have arrived in the readyArray
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
             {   
                 Process& p = processesInAlgorithm[n];
@@ -564,19 +566,12 @@ struct RR
                 }
             }
 
+            // If else loop to determine if readyArray is empty, if it is then totalElapsedTime will be incremented
             if (readyArray.empty() == false)
             {
                 Process& p = readyArray[0];
-                // cout << "totalTimeElapsed: " << totalTimeElapsed << endl;
-                // cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << "  inWaiting: " << p.inWaiting << endl;
-                // cout << "this is what's inside the readyArray array: " << "\n";
-                // for (int n = 0; n < readyArray.size(); n++)
-                // {
-                //     Process a = readyArray[n];
-                //     cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
-                // }
-                // cout << endl;
 
+                // To record times when the process goes in/out of the readyArray
                 if (p.firstRun || p.inWaiting)
                 {
                     p.playPauseTime = totalTimeElapsed;
@@ -590,6 +585,11 @@ struct RR
                     p.inWaiting = false;
                 }
    
+                // Processes will classify either as higher than the quantum, or smaller than/equal to the quantum.
+                // The processing happens inside this if else statement.
+                //
+                // Erasing the 0th element of the readyArray is then followed by appending any newly arrived process, 
+                // followed by the process that's been ran (if still not done yet)
                 if (p.burstTime <= runTime)
                 {
                     tempProcess = p;
@@ -611,6 +611,7 @@ struct RR
                     totalResponseTime += tempProcess.responseTime;
                     totalWaitingTime += tempProcess.waitingTime;
                     
+                    // This for loop is to add any processes that might've been ready while the current process was processing
                     for (int n = 0; n < processesInAlgorithm.size(); n++)  
                     {   
                         Process& p = processesInAlgorithm[n];
@@ -639,6 +640,7 @@ struct RR
                     tempProcess.burstTimeProcessed = 0;
                     totalTimeElapsed += runTime;
 
+                    // This for loop is to add any processes that might've been ready while the current process was processing
                     for (int n = 0; n < processesInAlgorithm.size(); n++)  
                     {   
                         Process& p = processesInAlgorithm[n];
@@ -680,8 +682,8 @@ int main()
     string line;
     int testCases;
 
-    // Variables for determining which algorithm to use and the number of processes to process
-    // Quantum is only really used for RR algo
+    // Variables for determining which algorithm to use and the number of processes to process.
+    // Quantum is only used for RR algorithm.
     int numProcesses;
     string processName;
     double quantum;
@@ -697,7 +699,8 @@ int main()
     {
         vector<Process> processArray = {};
 
-        cout << "------SEPARATOR IN MAIN. REMOVE BEFORE SUBMITTING------" << endl;
+        // cout << "------SEPARATOR IN MAIN. COMMENT OUT BEFORE SUBMITTING------" << endl;
+
         cout << currentTestCaseNum << endl;
         cin >> numProcesses >> processName;
 
@@ -706,11 +709,12 @@ int main()
             cin >> quantum;
         }
         
-        for(int n = 0; n < numProcesses; n++) // Puts process details in a Process object.
+        // Puts process details in a Process object.
+        for(int n = 0; n < numProcesses; n++) 
         {
             cin >> arrival >> burst >> priority;
             Process p(arrival, burst, priority);
-            p.processIndex = n + 1;  // The specs stated that the starting index is 1, not 0.
+            p.processIndex = n + 1;  // The specs stated that the starting index of a process is 1, not 0.
             processArray.push_back(p);
         }
 
