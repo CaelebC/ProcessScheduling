@@ -209,25 +209,6 @@ struct SJF
                     continue;
                 }
             }
-            
-            for (int n = 0; n < processesInAlgorithm.size(); n++)  
-            {   
-                Process& p = processesInAlgorithm[0];
-
-                if (p.arrivalTime <= totalTimeElapsed)
-                {
-                    p.originalBurstTime = p.burstTime;
-                    readyArray.push_back(p);
-                    processesInAlgorithm.erase(processesInAlgorithm.begin());
-                    
-                    // This allows for last process to be added to the readyArray
-                    if (processesInAlgorithm.empty() == true)
-                    {
-                        break;
-                    }
-                    continue;
-                }
-            }
 
             std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
 
