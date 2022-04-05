@@ -12,5 +12,5 @@ Scheduling Algorithms in Code:
 - Priority Scheduling (P)
 - Round-Robin (RR)
 
-In the "Project1_Grp2_Input.txt" file, the odd numbered inputs were obtained from the spec 
-sheet (Sample 1, and Sample 2 for RR only). Even numbered inputs were created by me.
+In the "Project1_Grp2_Input.txt" file, the odd numbered test cases were obtained from the spec 
+sheet (Sample 1, and Sample 2 for RR only). Even numbered test cases were created by me.
