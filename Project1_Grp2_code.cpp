@@ -50,6 +50,7 @@ struct Process
     double turnaroundTime = 0;
     double responseTime = 0;
 
+    bool firstRun = true;
     bool inWaiting = false;
     bool processIsDone = false;
 
@@ -291,7 +292,7 @@ struct SRTF
         bool firstTime = true;
         bool lastElement = false;
 
-        int previousIndex = 0;
+        int previousProcessElapsed = 0;
         Process dummy(0, 0, 0);
         Process& previousProcess = dummy;
 
@@ -321,15 +322,17 @@ struct SRTF
             if (readyArray.empty() == false)
             {
                 Process& p = readyArray[0];
-                
-                if (firstTime)
+
+                if (p.firstRun || p.waitingTime)
                 {
+                    p.playPauseTime = totalTimeElapsed;
                     previousProcess = p;
-                    firstTime = false;
+                    p.firstRun = false;
                 }
 
                 if (readyArray.size() > 1)  // New process detected in readyArray, meaning possible switch
                 {
+                    bool wentThroughLoop = false;
                     for (int n = 1; n < readyArray.size(); n++)
                     {
                         Process& pNext = readyArray[n];
@@ -337,10 +340,16 @@ struct SRTF
                         {
                             std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
                             cout << previousProcess.playPauseTime << " " << previousProcess.processIndex << " " << previousProcess.burstTimeProcessed << endl;
-                            totalTimeElapsed += runTime;
+                            p.inWaiting = true;
+                            // totalTimeElapsed += runTime;
                             previousProcess = p;
+                            wentThroughLoop = true;
                             break;
                         }
+                    }
+                    if (wentThroughLoop)
+                    {
+                        continue;
                     }
                 }
                   
@@ -366,7 +375,7 @@ struct SRTF
                 if (p.burstTime == 0)
                 {
                     processesCompleted += 1;
-                    cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                    cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += runTime;
                     readyArray.erase(readyArray.begin());
                     continue;
