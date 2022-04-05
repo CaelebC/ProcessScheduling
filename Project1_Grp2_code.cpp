@@ -323,27 +323,30 @@ struct SRTF
             {
                 Process& p = readyArray[0];
 
-                if (p.firstRun || p.waitingTime)
+                if (p.firstRun || p.inWaiting)
                 {
                     p.playPauseTime = totalTimeElapsed;
                     previousProcess = p;
                     p.firstRun = false;
+                    p.inWaiting = false;
+                    cout << "p.playpausetime: " << p.playPauseTime << endl;
                 }
 
                 if (readyArray.size() > 1)  // New process detected in readyArray, meaning possible switch
                 {
                     bool wentThroughLoop = false;
+
                     for (int n = 1; n < readyArray.size(); n++)
                     {
                         Process& pNext = readyArray[n];
                         if (p.burstTime > pNext.burstTime)
                         {
-                            std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
-                            cout << previousProcess.playPauseTime << " " << previousProcess.processIndex << " " << previousProcess.burstTimeProcessed << endl;
+                            cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
+                            p.burstTimeProcessed = 0;
                             p.inWaiting = true;
-                            // totalTimeElapsed += runTime;
                             previousProcess = p;
                             wentThroughLoop = true;
+                            std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
                             break;
                         }
                     }
@@ -353,7 +356,8 @@ struct SRTF
                     }
                 }
                   
-                cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << endl;
+                cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << "  inWaiting: " << p.inWaiting << endl;
+                // cout << "this is what's inside the processesInAlgo array: " << "\n";
                 // for (int n = 0; n < processesInAlgorithm.size(); n++)
                 // {
                 //     Process a = processesInAlgorithm[n];
@@ -377,7 +381,9 @@ struct SRTF
                     processesCompleted += 1;
                     cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += runTime;
+                    cout << "total elapsed time: " << totalTimeElapsed << endl;
                     readyArray.erase(readyArray.begin());
+                    cout << "arraysize: " << readyArray.size() << endl;
                     continue;
                 }
                 else
