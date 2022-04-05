@@ -538,7 +538,7 @@ struct RR
         // This is to keep track of the previous process before switching.
         // The dummy object is needed to be able to create a Process obj with a & (process obj that could be modified).
         Process dummy(0, 0, 0);
-        Process& previousProcess = dummy;  
+        Process& tempProcess = dummy;  
 
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
@@ -550,12 +550,11 @@ struct RR
 
         while (processesCompleted < totalNumProcesses)
         {
-            double runTime = 1;  // Every process will be run for every unit of time dictated here
+            double runTime = quantum;  // Every process will be run for every unit of time dictated here
 
             for (int n = 0; n < processesInAlgorithm.size(); n++)  
             {   
                 Process& p = processesInAlgorithm[n];
-
                 if (p.arrivalTime <= totalTimeElapsed)
                 {
                     p.originalBurstTime = p.burstTime;
@@ -568,11 +567,19 @@ struct RR
             if (readyArray.empty() == false)
             {
                 Process& p = readyArray[0];
+                // cout << "totalTimeElapsed: " << totalTimeElapsed << endl;
+                // cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << "  inWaiting: " << p.inWaiting << endl;
+                // cout << "this is what's inside the readyArray array: " << "\n";
+                // for (int n = 0; n < readyArray.size(); n++)
+                // {
+                //     Process a = readyArray[n];
+                //     cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
+                // }
+                // cout << endl;
 
                 if (p.firstRun || p.inWaiting)
                 {
                     p.playPauseTime = totalTimeElapsed;
-                    previousProcess = p;
                     
                     if (p.firstRun)
                     {
@@ -582,60 +589,75 @@ struct RR
                     p.firstRun = false;
                     p.inWaiting = false;
                 }
-
-                if (readyArray.size() > 1)  // New process detected in readyArray, meaning possible switch
+   
+                if (p.burstTime <= runTime)
                 {
-                    bool wentThroughLoop = false;
+                    tempProcess = p;
+                    readyArray.erase(readyArray.begin());
+                    
+                    totalBurstTime += tempProcess.burstTime;
+                    tempProcess.burstTimeProcessed += tempProcess.burstTime;
 
-                    for (int n = 1; n < readyArray.size(); n++)
-                    {
-                        Process& pNext = readyArray[n];
-                        if (p.priorityNum > pNext.priorityNum)
+                    cout << tempProcess.playPauseTime << " " << tempProcess.processIndex << " " << tempProcess.burstTimeProcessed << "X" << endl;
+                    tempProcess.burstTimeProcessed = 0;
+                    totalTimeElapsed += tempProcess.burstTime;
+                    tempProcess.burstTime -= tempProcess.burstTime;
+
+                    tempProcess.turnaroundTime = (totalTimeElapsed - tempProcess.originalStartTime);
+                    tempProcess.responseTime = (tempProcess.originalStartTime - tempProcess.arrivalTime);
+                    tempProcess.waitingTime = (tempProcess.turnaroundTime - tempProcess.originalBurstTime) + tempProcess.responseTime;
+                    
+                    totalTurnaroundTime += tempProcess.turnaroundTime;
+                    totalResponseTime += tempProcess.responseTime;
+                    totalWaitingTime += tempProcess.waitingTime;
+                    
+                    for (int n = 0; n < processesInAlgorithm.size(); n++)  
+                    {   
+                        Process& p = processesInAlgorithm[n];
+                        if (p.arrivalTime <= totalTimeElapsed)
                         {
-                            cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
-                            p.burstTimeProcessed = 0;
-                            p.inWaiting = true;
-                            previousProcess = p;
-                            wentThroughLoop = true;
-                            std::sort(readyArray.begin(), readyArray.end(), OrderingByPriority());
-                            break;
+                            p.originalBurstTime = p.burstTime;
+                            readyArray.insert(readyArray.begin(), p);
+                            processesInAlgorithm.erase(processesInAlgorithm.begin());
                         }
                     }
-                    if (wentThroughLoop)
-                    {
-                        continue;
-                    }
-                }
-                  
-                p.burstTime -= runTime;
-                p.burstTimeProcessed += runTime;
-                totalBurstTime += runTime;
 
-                if (p.burstTime == 0)
-                {
                     processesCompleted += 1;
-                    cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
-                    totalTimeElapsed += runTime;
-                    p.turnaroundTime = (totalTimeElapsed - p.originalStartTime);
-                    p.responseTime = (p.originalStartTime - p.arrivalTime);
-                    p.waitingTime = (p.turnaroundTime - p.originalBurstTime) + p.responseTime;
-                    
-                    totalTurnaroundTime += p.turnaroundTime;
-                    totalResponseTime += p.responseTime;
-                    totalWaitingTime += p.waitingTime;
-                    readyArray.erase(readyArray.begin());
                     continue;
                 }
                 else
                 {
+                    tempProcess = p;
+                    readyArray.erase(readyArray.begin());
+                    
+                    tempProcess.inWaiting = true;
+                    tempProcess.burstTime -= runTime;
+                    tempProcess.burstTimeProcessed += runTime;
+                    totalBurstTime += runTime;
+
+                    cout << tempProcess.playPauseTime << " " << tempProcess.processIndex << " " << tempProcess.burstTimeProcessed << endl;
+                    tempProcess.burstTimeProcessed = 0;
                     totalTimeElapsed += runTime;
-                    previousProcess = p;
+
+                    for (int n = 0; n < processesInAlgorithm.size(); n++)  
+                    {   
+                        Process& p = processesInAlgorithm[n];
+                        if (p.arrivalTime <= totalTimeElapsed)
+                        {
+                            p.originalBurstTime = p.burstTime;
+                            readyArray.insert(readyArray.begin(), p);
+                            processesInAlgorithm.erase(processesInAlgorithm.begin());
+                        }
+                    }
+
+                    readyArray.push_back(tempProcess);
+
                     continue;
                 }
             }
             else
             {
-                totalTimeElapsed += runTime;
+                totalTimeElapsed += 1;
             }
         }
 
