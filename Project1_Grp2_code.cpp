@@ -235,22 +235,7 @@ struct SJF
             {
                 
                 Process& p = readyArray[0];
-                cout << "p --> " << "index: " << p.processIndex << "  arrivalTime: " << p.arrivalTime << "  burstTime: " << p.burstTime << "  burstTimeProcessed: " << p.burstTimeProcessed << "  inWaiting: " << p.inWaiting << endl;
-                cout << "this is what's inside the readyArray array: " << "\n";
-                for (int n = 0; n < readyArray.size(); n++)
-                {
-                    Process a = readyArray[n];
-                    cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
-                }
-                cout << endl;
-                cout << "this is what's inside the processAlgo array: " << "\n";
-                for (int n = 0; n < processesInAlgorithm.size(); n++)
-                {
-                    Process a = processesInAlgorithm[n];
-                    cout << "index: " << a.processIndex << "  arrivalTime: " << a.arrivalTime << "  burstTime: " << a.burstTime << "  burstTimeProcessed: " << a.burstTimeProcessed << endl;
-                }
-                cout << endl;
-  
+                
                 p.burstTimeProcessed += p.burstTime;
                 totalBurstTime += p.burstTime;
                 totalTurnaroundTime += p.burstTime;
@@ -310,8 +295,9 @@ struct SRTF
             double runTime = 1;  // Every process will be run for every unit of time dictated here
 
             // Adds processes which have arrived in the readyArray
-            for (int n = 0; n < processesInAlgorithm.size(); n++)  
-            {   
+            int n = 0;
+            while (processesInAlgorithm.empty() == false && n < processesInAlgorithm.size())
+            {
                 Process& p = processesInAlgorithm[n];
 
                 if (p.arrivalTime <= totalTimeElapsed)
@@ -319,6 +305,20 @@ struct SRTF
                     p.originalBurstTime = p.burstTime;
                     readyArray.push_back(p);
                     processesInAlgorithm.erase(processesInAlgorithm.begin());
+                    
+                    // This allows for last process to be added to the readyArray
+                    if (processesInAlgorithm.empty() == true)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    n += 1;
                     continue;
                 }
             }
