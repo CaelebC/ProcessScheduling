@@ -322,7 +322,7 @@ struct SRTF
             if (readyArray.empty() == false)
             {
                 Process& p = readyArray[0];
-
+                
                 // To record times when the process goes in/out of the readyArray
                 if (p.firstRun || p.inWaiting)
                 {
@@ -341,6 +341,7 @@ struct SRTF
                 // This also makes the switch needed
                 if (readyArray.size() > 1)  
                 {
+                    bool passedLoop = false;
                     int n = 1;
                     while (readyArray.empty() == false && n < readyArray.size())
                     {   
@@ -351,6 +352,7 @@ struct SRTF
                             p.burstTimeProcessed = 0;
                             p.inWaiting = true;
                             std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
+                            passedLoop = true;
                             break;
                         }
                         else
@@ -358,6 +360,10 @@ struct SRTF
                             n += 1;
                             continue;
                         }
+                    }
+                    if (passedLoop)
+                    {
+                        continue;
                     }
                 }
                   
