@@ -1,6 +1,8 @@
 To run the program, compile the file "Project_Grp2_code.cpp" and run the following command on your CLI (tested on Windows):
 Project1_Grp2_code.exe < Project1_Grp2_Input.txt
 
+The program will create a file to store its output. The file is named "Project1_Grp2_Output.txt".
+
 C++ program that uses algorithms to schedule "processes". This program emulates how a uniprocessor 
 would schedule processes with zero overhead (context switching is instantaneous).
 
