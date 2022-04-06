@@ -21,6 +21,8 @@
 // SRTF algorithm explanation https://www.youtube.com/watch?v=_QcX99B-zbU
 // Preemptive Priority algorithm explanation https://www.youtube.com/watch?v=23h3lkHNL_s
 // Round Robin algorithm explanation https://www.youtube.com/watch?v=-jFGYDfWkXI
+// Storing together strings and variable values from https://stackoverflow.com/questions/10219225/c-create-string-of-text-and-variables
+// ofstream information from https://www.cplusplus.com/doc/tutorial/files/
 // 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -32,6 +34,7 @@
 #include <cstdio>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <bits/stdc++.h>
@@ -95,23 +98,28 @@ struct OrderingByPriority
 };
 
 // This function is to compute and print the Scheduling Criteria
-void computation(double totalBurstTime, double totalTimeElapsed, double totalNumProcesses, double totalWaitingTime, double totalTurnaroundTime, double totalResponseTime)
+string computation(double totalBurstTime, double totalTimeElapsed, double totalNumProcesses, double totalWaitingTime, double totalTurnaroundTime, double totalResponseTime)
 {
+    ostringstream outputText;
+
     double cpuUtilization = (totalBurstTime / totalTimeElapsed) * 100;
     double throughput = totalNumProcesses / totalTimeElapsed;
     double waitingTime = totalWaitingTime / totalNumProcesses;
     double turnaroundTime = totalTurnaroundTime / totalNumProcesses;
     double responseTime = totalResponseTime / totalNumProcesses;  // Total amount of time the processes ARE STILL WAITING to be executed
 
-    cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
-    cout << "Throughput: " << throughput << endl;
-    cout << "Waiting time: " << waitingTime << endl;
-    cout << "Turnaround time: " << turnaroundTime << endl;
-    cout << "Response time: " << responseTime << endl;
+    outputText << "CPU Utilization: " << cpuUtilization << "%" << endl;
+    outputText << "Throughput: " << throughput << endl;
+    outputText << "Waiting time: " << waitingTime << endl;
+    outputText << "Turnaround time: " << turnaroundTime << endl;
+    outputText << "Response time: " << responseTime << endl;
 
+    string funcOut = outputText.str();
     // Code commented out. This was used for testing purposes.
     // cout << "\n" << "totalBurstTime: " << totalBurstTime << " totalTimeElapsed: " << totalTimeElapsed << " totalNumProcesses: " << totalNumProcesses << endl;
     // cout << "totalWaitingTime: " << totalWaitingTime << " totalTurnaroundTime: " << totalTurnaroundTime << " totalResponseTime: " << totalResponseTime << endl;
+
+    return funcOut; 
 }
 
 // These structs are to schedule the processes
@@ -119,8 +127,10 @@ struct FCFS
 {
     vector<Process> processesInAlgorithm;
 
-    void run()
+    string run()
     {
+        ostringstream outputText;
+
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         double totalBurstTime = 0;
         double totalTimeElapsed = 0;
@@ -146,12 +156,15 @@ struct FCFS
             totalBurstTime += p.burstTime;
             totalTurnaroundTime += p.burstTime;
             
-            cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << "X" << endl;
+            outputText << totalTimeElapsed << " " << p.processIndex << " " << p.burstTime << "X" << endl;
             
             totalTimeElapsed += p.burstTime;  // This has to be here because of the output's format in the specs
         }
 
-        computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        outputText << computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        string funcOut = outputText.str();
+        
+        return funcOut;
     }
 
     FCFS(vector<Process> processesInAlgorithm)
@@ -166,8 +179,10 @@ struct SJF
 {
     vector<Process> processesInAlgorithm;
 
-    void run()
+    string run()
     {
+        ostringstream outputText;
+        
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         vector<Process> readyArray = {};
         double processesCompleted = 0;
@@ -224,7 +239,7 @@ struct SJF
                 totalWaitingTime += (totalTimeElapsed - p.arrivalTime);
                 totalResponseTime += (totalTimeElapsed - p.arrivalTime);
 
-                cout << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                outputText << totalTimeElapsed << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                 totalTimeElapsed += p.burstTime;  // This has to be here because of the output's format in the specs
                 p.burstTime -= p.burstTime;
                 processesCompleted += 1;
@@ -238,7 +253,10 @@ struct SJF
             }
         }
 
-        computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        outputText << computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        string funcOut = outputText.str();
+        
+        return funcOut; 
     }
 
     SJF(vector<Process> processesInAlgorithm)
@@ -253,8 +271,10 @@ struct SRTF
 {
     vector<Process> processesInAlgorithm;
 
-    void run()
+    string run()
     {        
+        ostringstream outputText;
+        
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         vector<Process> readyArray = {};
         double processesCompleted = 0;
@@ -330,7 +350,7 @@ struct SRTF
                         Process& pNext = readyArray[n];
                         if (p.burstTime > pNext.burstTime)
                         {
-                            cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
+                            outputText << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
                             p.burstTimeProcessed = 0;
                             p.inWaiting = true;
                             std::sort(readyArray.begin(), readyArray.end(), OrderingByBurst());
@@ -357,7 +377,7 @@ struct SRTF
                 if (p.burstTime == 0)
                 {
                     processesCompleted += 1;
-                    cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                    outputText << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += runTime;
                     p.turnaroundTime = (totalTimeElapsed - p.originalStartTime);
                     p.responseTime = (p.originalStartTime - p.arrivalTime);
@@ -383,7 +403,10 @@ struct SRTF
             }
         }
 
-        computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        outputText << computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        string funcOut = outputText.str();
+        
+        return funcOut;
     }
 
     SRTF(vector<Process> processesInAlgorithm)
@@ -398,8 +421,10 @@ struct Prio
 {
     vector<Process> processesInAlgorithm;
 
-    void run()
+    string run()
     {        
+        ostringstream outputText;
+        
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         vector<Process> readyArray = {};
         double processesCompleted = 0;
@@ -465,7 +490,7 @@ struct Prio
                         Process& pNext = readyArray[n];
                         if (p.priorityNum > pNext.priorityNum)
                         {
-                            cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
+                            outputText << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << endl;
                             p.burstTimeProcessed = 0;
                             p.inWaiting = true;
                             previousProcess = p;
@@ -488,7 +513,7 @@ struct Prio
                 if (p.burstTime == 0)
                 {
                     processesCompleted += 1;
-                    cout << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
+                    outputText << p.playPauseTime << " " << p.processIndex << " " << p.burstTimeProcessed << "X" << endl;
                     totalTimeElapsed += runTime;
                     p.turnaroundTime = (totalTimeElapsed - p.originalStartTime);
                     p.responseTime = (p.originalStartTime - p.arrivalTime);
@@ -513,7 +538,10 @@ struct Prio
             }
         }
 
-        computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        outputText << computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        string funcOut = outputText.str();
+        
+        return funcOut;
     }
 
     Prio(vector<Process> processesInAlgorithm)
@@ -529,8 +557,10 @@ struct RR
     vector<Process> processesInAlgorithm;
     double quantum;
 
-    void run()
+    string run()
     {        
+        ostringstream outputText;
+
         std::sort(processesInAlgorithm.begin(), processesInAlgorithm.end(), OrderingByArrival());
         vector<Process> readyArray = {};
         double processesCompleted = 0;
@@ -597,7 +627,7 @@ struct RR
                     totalBurstTime += tempProcess.burstTime;
                     tempProcess.burstTimeProcessed += tempProcess.burstTime;
 
-                    cout << tempProcess.playPauseTime << " " << tempProcess.processIndex << " " << tempProcess.burstTimeProcessed << "X" << endl;
+                    outputText << tempProcess.playPauseTime << " " << tempProcess.processIndex << " " << tempProcess.burstTimeProcessed << "X" << endl;
                     tempProcess.burstTimeProcessed = 0;
                     totalTimeElapsed += tempProcess.burstTime;
                     tempProcess.burstTime -= tempProcess.burstTime;
@@ -635,7 +665,7 @@ struct RR
                     tempProcess.burstTimeProcessed += runTime;
                     totalBurstTime += runTime;
 
-                    cout << tempProcess.playPauseTime << " " << tempProcess.processIndex << " " << tempProcess.burstTimeProcessed << endl;
+                    outputText << tempProcess.playPauseTime << " " << tempProcess.processIndex << " " << tempProcess.burstTimeProcessed << endl;
                     tempProcess.burstTimeProcessed = 0;
                     totalTimeElapsed += runTime;
 
@@ -662,7 +692,10 @@ struct RR
             }
         }
 
-        computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        outputText << computation(totalBurstTime, totalTimeElapsed, totalNumProcesses, totalWaitingTime, totalTurnaroundTime, totalResponseTime);
+        string funcOut = outputText.str();
+
+        return funcOut;
     }
 
     RR(vector<Process> processesInAlgorithm, double quantum)
@@ -677,6 +710,9 @@ struct RR
 
 int main()
 {
+    ofstream fileOutput;
+    fileOutput.open("Project1_Grp2_Output.txt");
+    
     // Used to get the number of test cases and to store every line of the input
     string line;
     int testCases;
@@ -698,9 +734,6 @@ int main()
     {
         vector<Process> processArray = {};
 
-        // cout << "------SEPARATOR IN MAIN. COMMENT OUT BEFORE SUBMITTING------" << endl;
-
-        cout << currentTestCaseNum << endl;
         cin >> numProcesses >> processName;
 
         if (processName == "RR")  // This is to catch the quantum of the RR if ever there is one.
@@ -720,27 +753,32 @@ int main()
         if (processName == "FCFS")
         {
             FCFS algo(processArray);
-            algo.run();
+            fileOutput << currentTestCaseNum << endl;
+            fileOutput << algo.run();
         }
         else if (processName == "SJF")
         {
             SJF algo(processArray);
-            algo.run();
+            fileOutput << currentTestCaseNum << endl;
+            fileOutput << algo.run();
         }
         else if (processName == "SRTF")
         {
             SRTF algo(processArray);
-            algo.run();
+            fileOutput << currentTestCaseNum << endl;
+            fileOutput << algo.run();
         }
         else if (processName == "P")
         {
             Prio algo(processArray);
-            algo.run();
+            fileOutput << currentTestCaseNum << endl;
+            fileOutput << algo.run();
         }
         else if (processName == "RR")
         {
             RR algo(processArray, quantum);
-            algo.run();
+            fileOutput << currentTestCaseNum << endl;
+            fileOutput << algo.run();
         }
         else
         {
